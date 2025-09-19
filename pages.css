@@ -1,0 +1,168 @@
+/* =================================
+   Variáveis de Cor e Estilo Base
+==================================== */
+:root {
+    --bg-color: #fffcf9;
+    --primary-text: #5d4a3a;
+    --heading-text: #4d3a2a;
+    --brand-orange: #f97316;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(100, 80, 70, 0.1);
+    --border-color: #f0e9e4;
+    --gradient: linear-gradient(90deg, #fb923c, #f59e0b, #84cc16);
+}
+
+/* =================================
+   Reset e Estilos Globais
+==================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--primary-text);
+    line-height: 1.7;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.02) 1px, transparent 0);
+    background-size: 20px 20px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* =================================
+   Cabeçalho e Rodapé
+==================================== */
+.page-header {
+    padding: 20px 0;
+    background-color: var(--card-bg);
+    box-shadow: 0 2px 10px var(--card-shadow);
+}
+
+.page-header .container {
+    text-align: center;
+}
+
+.logo {
+    font-size: 3.0rem;
+    font-weight: 700;
+    text-decoration: none;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block; 
+}
+
+.page-footer {
+    padding: 40px 20px;
+    margin-top: 60px;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* =================================
+   Conteúdo Principal e Card
+==================================== */
+.page-content {
+    padding-top: 60px;
+    padding-bottom: 60px;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px 50px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: var(--heading-text);
+    margin-bottom: 15px;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 30px auto;
+}
+
+.separator {
+    border: none;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 40px auto;
+}
+
+/* =================================
+   Seções da Página (Missão, Visão, etc.)
+==================================== */
+.contact-item .icon,
+.value-item .icon {
+    font-size: 2.5rem;
+    color: var(--brand-orange);
+    margin-bottom: 15px;
+}
+
+.contact-item h2,
+.value-item h2 {
+    font-size: 1.5rem;
+    color: var(--heading-text);
+    margin-bottom: 10px;
+}
+
+.contact-item p,
+.value-item p {
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.contact-link {
+    font-weight: 600;
+    color: var(--brand-orange);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+}
+
+.contact-link:hover {
+    color: var(--heading-text);
+    text-decoration: underline;
+}
+
+.values-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    text-align: center;
+}
+
+/* =================================
+   Responsividade
+==================================== */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2.2rem;
+    }
+    .logo {
+        font-size: 2.5rem;
+    }
+    .card {
+        padding: 30px 25px;
+    }
+    .values-grid {
+        grid-template-columns: 1fr; /* Coluna única em telas menores */
+        gap: 40px;
+    }
+}

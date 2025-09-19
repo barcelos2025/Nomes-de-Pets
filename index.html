@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n-key="pageTitle">Pawsome Pet Names Generator</title>
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="theme-color" content="#ffffff">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4466403456662578" crossorigin="anonymous"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="active-couple-mode-banner" style="display: none;"></div>
+
+    <main class="container">
+        
+        <header class="header">
+            <h1 data-i18n-key="mainHeading">Pawsome Pet Names</h1>
+            <h2 data-i18n-key="subHeading">Discover creative, fun names for your furry friend. Generate, explore, and save your favorites.</h2>
+            <div class="cta-buttons">
+                <a href="#generator" class="btn btn-primary"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n-key="startDiscovering">Start Discovering Names</span></a>
+                <div class="social-proof">
+                    <div class="avatar-stack">
+                        <i class="fa-solid fa-user"></i>
+                        <i class="fa-solid fa-user"></i>
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <span data-i18n-key="joinPetLovers">Join 50,000+ Pet Lovers</span>
+                </div>
+            </div>
+            <div class="metrics-container">
+                <div class="metric-item">
+                    <i class="fa-solid fa-paw"></i>
+                    <div class="metric-text">
+                        <span data-i18n-key="metricNamesCount">1.3k+</span> 
+                        <span data-i18n-key="metricNames">Names</span>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <i class="fa-solid fa-face-smile"></i>
+                    <div class="metric-text">
+                        <span data-i18n-key="metricTutorsCount">50k+</span> 
+                        <span data-i18n-key="metricTutors">Happy Tutors</span>
+                    </div>
+                </div>
+                <div class="metric-item">
+                    <i class="fa-solid fa-tags"></i>
+                    <div class="metric-text">
+                        <span data-i18n-key="metricStylesCount">10+</span> 
+                        <span data-i18n-key="metricStyles">Styles</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="ad-space" data-i18n-key="adLabel">Publicidade</div>
+
+        <section id="generator" class="section">
+            <div class="card generator-card">
+                <div style="text-align: center;">
+                    <h3 class="section-title" data-i18n-key="discoverTitle">Discover The Perfect Name</h3>
+                    <p class="section-subtitle" data-i18n-key="discoverSubtitle">Generate fun and creative names for your best friend</p>
+                </div>
+                
+                <div class="filters">
+                    <div class="filter-group"> <label data-i18n-key="filterGender">Sex</label> <div class="gender-options"> <button class="active" data-i18n-key="genderAll">All</button> <button data-i18n-key="genderBoy">Male</button> <button data-i18n-key="genderGirl">Female</button> <button data-i18n-key="genderUnisex">Unisex</button> </div> </div>
+                    <div class="filter-group">
+                        <label for="culture-filter" data-i18n-key="filterStyle">Name Style</label>
+                        <select id="culture-filter" class="dropdown">
+                            <option value="All Styles" data-i18n-key="styleAll">All Styles</option>
+                            <option value="Geek" data-i18n-key="styleGeek">Geek</option>
+                            <option value="Comida" data-i18n-key="styleFood">Food</option>
+                            <option value="Engraçado" data-i18n-key="styleFunny">Funny</option>
+                            <option value="Natureza" data-i18n-key="styleNature">Nature</option>
+                            <option value="Clássico" data-i18n-key="styleClassic">Classic</option>
+                            <option value="Humano" data-i18n-key="styleHuman">Human</option>
+                            <option value="Místico" data-i18n-key="styleMystic">Mystic</option>
+                            <option value="Artistas" data-i18n-key="styleArtists">Artists</option>
+                            <option value="Cientistas" data-i18n-key="styleScientists">Scientists</option>
+                            <option value="Lugares" data-i18n-key="stylePlaces">Places</option>
+                            <option value="Brasileiro" data-i18n-key="styleBrazilian">Brazilian</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="brazilian-only-checkbox" data-i18n-key="filterBrazilianLabel">Brazilian Names</label>
+                        <div class="brazilian-filter">
+                            <label class="switch">
+                                <input type="checkbox" id="brazilian-only-checkbox">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="result-display" id="result-display">
+                    <p data-i18n-key="loadingNames">Loading names...</p>
+                </div>
+            </div>
+            <button id="generate-btn" class="btn btn-primary" disabled>
+                <i class="fa-solid fa-arrows-rotate"></i> <span data-i18n-key="generateButton">Generate New Name</span>
+            </button>
+        </section>
+
+        <section id="matches-section" class="section" style="display: none;">
+            <h3 class="section-title">
+                <i class="fa-solid fa-heart-pulse" style="color: #f97316;"></i>
+                <span data-i18n-key="matchesTitle">Our Matches</span>
+            </h3>
+            <div id="matches-list" class="favorites-container">
+            </div>
+        </section>
+
+        <section id="favorites-section" class="section" style="display: none;">
+            <h3 class="section-title">
+                <i class="fa-solid fa-heart" style="color: #f97316;"></i>
+                <span data-i18n-key="favoritesTitle">Your Favorite Names</span>
+                <button id="share-favorites-btn" class="btn btn-small">
+                    <i class="fa-solid fa-share-alt"></i>
+                    <span data-i18n-key="shareButton">Share List</span>
+                </button>
+                <button id="clear-favorites-btn" class="btn btn-small btn-danger">
+                    <i class="fa-solid fa-trash"></i>
+                    <span data-i18n-key="clearButton">Clear List</span>
+                </button>
+            </h3>
+            <div id="favorites-list" class="favorites-container">
+            </div>
+        </section>
+        
+        <section class="section"> 
+            <h3 class="section-title" data-i18n-key="socialTitle">✨ Make It Social</h3> 
+            <div class="grid-3"> 
+                <div class="feature-card clickable-card" id="start-quiz-card"> 
+                    <div class="icon"><i class="fa-solid fa-star" style="color: #f59e0b;"></i></div> 
+                    <h4 data-i18n-key="quizTitle">Name Style Quiz</h4> 
+                    <p data-i18n-key="quizSubtitle">Find the perfect style for your pet.</p> 
+                </div> 
+                <div class="feature-card clickable-card" id="couple-mode-card"> 
+                    <div class="icon"><i class="fa-solid fa-hand-holding-heart" style="color: #f97316;"></i></div> 
+                    <h4 data-i18n-key="partnerModeTitle">Partner Mode</h4> 
+                    <p data-i18n-key="partnerModeSubtitle">Find names you both love.</p> 
+                </div> 
+                <div class="feature-card clickable-card" id="share-lists-card"> 
+                    <div class="icon"><i class="fa-solid fa-share-nodes" style="color: #84cc16;"></i></div> 
+                    <h4 data-i18n-key="shareTitle">Share Name Lists</h4> 
+                    <p data-i18n-key="shareSubtitle">Curated themed collections.</p> 
+                </div> 
+            </div> 
+        </section>
+
+        <section id="quiz-section" class="section" style="display: none;">
+            <div class="card quiz-card">
+                <button id="quiz-close-btn" class="modal-close-btn">&times;</button>
+                <div id="quiz-container">
+                </div>
+            </div>
+        </section>
+        
+        <section class="section"> 
+            <h3 class="trending-section-title" data-i18n-key="trendingTitle">
+                <i class="fa-solid fa-chart-line"></i> 
+                <span>Trending This Week</span>
+            </h3> 
+            <div class="grid-3" id="trending-names-container">
+            </div> 
+        </section>
+
+        <div class="ad-space" data-i18n-key="adLabel">Publicidade</div>
+        <section class="section"> <h3 class="section-title" data-i18n-key="whyLoveTitle">Why Tutors Love Our Generator</h3> <p class="section-subtitle" data-i18n-key="whyLoveSubtitle">More than just a name list - we help you find names with personality, style, and a perfect fit for your pet.</p> <div class="grid-3"> <div class="feature-card"> <div class="icon" style="color: #f97316;"><i class="fa-solid fa-heart"></i></div> <h4 data-i18n-key="featureCreative">Creative Names</h4> <p data-i18n-key="featureCreativeText">Every name comes with a fun description to help you choose one with personality.</p> </div> <div class="feature-card"> <div class="icon" style="color: #f59e0b;"><i class="fa-solid fa-share-alt"></i></div> <h4 data-i18n-key="featureSharing">Easy Sharing</h4> <p data-i18n-key="featureSharingText">Share your favorite pet names with family and friends and decide together.</p> </div> <div class="feature-card"> <div class="icon" style="color: #84cc16;"><i class="fa-solid fa-wand-magic-sparkles"></i></div> <h4 data-i18n-key="featurePersonalized">Personalized</h4> <p data-i18n-key="featurePersonalizedText">Filter by sex, style, and personality to find names that perfectly match your pet.</p> </div> </div> </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="about.html" data-i18n-key="footerAbout">About Us</a>
+            <a href="contact.html" data-i18n-key="footerContact">Contact</a>
+            <a href="privacy.html" data-i18n-key="footerPrivacy">Privacy Policy</a>
+        </div>
+        <p class="copyright" data-i18n-key="footerCopyright">© 2025 Pawsome Pet Names. All rights reserved.</p>
+    </footer>
+
+    <div id="modal-overlay" style="display: none;"></div>
+    <div id="main-modal" style="display: none;">
+        <button id="modal-close-btn" class="modal-close-btn">&times;</button>
+        <div id="modal-content">
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
