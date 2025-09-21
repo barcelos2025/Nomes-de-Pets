@@ -1,3 +1,48 @@
+.theme-toggle {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--primary-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1200;
+}
+.theme-toggle:focus {
+    outline: 2px solid var(--brand-orange);
+    outline-offset: 3px;
+}
+.theme-toggle .icon {
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.theme-toggle .sun-icon {
+    display: none;
+}
+body.dark-mode .theme-toggle {
+    background-color: rgba(15, 23, 42, 0.9);
+    color: #fdf8ef;
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 8px 24px rgba(3, 7, 18, 0.65);
+}
+body.dark-mode .theme-toggle .sun-icon {
+    display: flex;
+}
+body.dark-mode .theme-toggle .moon-icon {
+    display: none;
+}
+
 /* =================================
    Variáveis de Cor e Estilo Base
 ==================================== */
@@ -11,6 +56,22 @@
     --border-color: #f0e9e4;
     --gradient: linear-gradient(90deg, #fb923c, #f59e0b, #84cc16);
 }
+body.dark-mode {
+    --bg-color: #0f1729;
+    --primary-text: #e2e8f0;
+    --heading-text: #f8fafc;
+    --brand-orange: #f97316;
+    --card-bg: #18233a;
+    --card-shadow: rgba(3, 7, 18, 0.6);
+    --border-color: rgba(148, 163, 184, 0.28);
+    --gradient: linear-gradient(90deg, #fb923c, #f97316, #38bdf8);
+    color-scheme: dark;
+}
+
+body.dark-mode {
+    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0);
+}
+
 
 /* =================================
    Reset e Estilos Globais
@@ -22,6 +83,8 @@
 }
 
 body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+    transition-property: background-color, color;
     font-family: 'Poppins', sans-serif;
     background-color: var(--bg-color);
     color: var(--primary-text);
@@ -166,3 +229,23 @@ h1 {
         gap: 40px;
     }
 }
+
+body.dark-mode .page-header {
+    box-shadow: 0 2px 18px rgba(3, 7, 18, 0.55);
+}
+body.dark-mode .card {
+    box-shadow: 0 12px 34px rgba(3, 7, 18, 0.55);
+}
+body.dark-mode .page-footer {
+    border-top-color: rgba(148, 163, 184, 0.35);
+}
+body.dark-mode .contact-link {
+    color: #f97316;
+}
+body.dark-mode .contact-link:hover {
+    color: #f8fafc;
+}
+@media (max-width: 768px) {
+    .theme-toggle { top: 14px; right: 14px; width: 44px; height: 44px; }
+}
+

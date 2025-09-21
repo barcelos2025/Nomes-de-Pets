@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -12,6 +12,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 </head>
 <body>
+    <button id="theme-toggle" class="theme-toggle" aria-label="Alternar para modo escuro" aria-pressed="false">
+        <span class="icon moon-icon"><i class="fa-solid fa-moon"></i></span>
+        <span class="icon sun-icon"><i class="fa-solid fa-sun"></i></span>
+    </button>
+
     <header class="page-header">
         <div class="container">
             <a href="index.html" class="logo">Pawsome Pet Names</a>
@@ -21,7 +26,7 @@
     <main class="container page-content">
         <div class="card">
             <h1>Entre em Contato</h1>
-            <p class="subtitle">Adoramos ouvir os tutores! Se você tem alguma pergunta, sugestão de nome, ou apenas quer mostrar uma foto do seu pet, sinta-se à vontade para nos contatar.</p>
+            <p class="subtitle">Adoramos ouvir os tutores! Se vocÃª tem alguma pergunta, sugestÃ£o de nome, ou apenas quer mostrar uma foto do seu pet, sinta-se Ã  vontade para nos contatar.</p>
             
             <hr class="separator">
 
@@ -29,7 +34,7 @@
                 <div class="contact-item">
                     <i class="fas fa-envelope icon"></i>
                     <h2>Nosso E-mail</h2>
-                    <p>A maneira mais fácil e rápida de falar conosco é através do e-mail. Nós nos esforçamos para responder a todas as mensagens em até 48 horas.</p>
+                    <p>A maneira mais fÃ¡cil e rÃ¡pida de falar conosco Ã© atravÃ©s do e-mail. NÃ³s nos esforÃ§amos para responder a todas as mensagens em atÃ© 48 horas.</p>
                     <a href="mailto:barcelos32@gmail.com" class="contact-link">barcelos32@gmail.com</a>
                 </div>
             </div>
@@ -39,5 +44,72 @@
     <footer class="page-footer">
         <p>&copy; 2025 Pawsome Pet Names. Todos os direitos reservados.</p>
     </footer>
+    <script>
+        (function () {
+            const storageKey = 'theme';
+            const toggleBtn = document.getElementById('theme-toggle');
+            const mediaQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+            function applyTheme(mode, persist = true) {
+                const isDark = mode === 'dark';
+                document.body.classList.toggle('dark-mode', isDark);
+                if (toggleBtn) {
+                    const label = isDark ? 'Alternar para modo claro' : 'Alternar para modo escuro';
+                    toggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+                    toggleBtn.setAttribute('aria-label', label);
+                    toggleBtn.setAttribute('title', label);
+                }
+                if (persist) {
+                    localStorage.setItem(storageKey, mode);
+                }
+            }
+
+            function resolveSystemPreference() {
+                return mediaQuery && mediaQuery.matches ? 'dark' : 'light';
+            }
+
+            function initializeTheme() {
+                const storedTheme = localStorage.getItem(storageKey);
+                if (storedTheme === 'light' || storedTheme === 'dark') {
+                    applyTheme(storedTheme, false);
+                } else {
+                    applyTheme(resolveSystemPreference(), false);
+                }
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+                    applyTheme(nextTheme, true);
+                });
+            }
+
+            if (mediaQuery) {
+                const listener = (event) => {
+                    if (!localStorage.getItem(storageKey)) {
+                        applyTheme(event.matches ? 'dark' : 'light', false);
+                    }
+                };
+                if (typeof mediaQuery.addEventListener === 'function') {
+                    mediaQuery.addEventListener('change', listener);
+                } else if (typeof mediaQuery.addListener === 'function') {
+                    mediaQuery.addListener(listener);
+                }
+            }
+
+            window.addEventListener('storage', (event) => {
+                if (event.key === storageKey) {
+                    if (event.newValue === 'light' || event.newValue === 'dark') {
+                        applyTheme(event.newValue, false);
+                    } else if (!event.newValue) {
+                        applyTheme(resolveSystemPreference(), false);
+                    }
+                }
+            });
+
+            initializeTheme();
+        })();
+    </script>
 </body>
 </html>
+

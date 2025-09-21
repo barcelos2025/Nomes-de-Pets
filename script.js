@@ -56,6 +56,7 @@ const modalContent = document.getElementById('modal-content');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const toastContainer = document.getElementById('toast-container');
 const activeCoupleModeBanner = document.getElementById('active-couple-mode-banner');
+const themeToggleBtn = document.getElementById('theme-toggle');
 
 // LÓGICA DO QUIZ
 const quizData = {
@@ -207,6 +208,53 @@ function shouldUsePartnerGeneratedName(partnerCandidateCount) {
     return coupleModeStats.partnerMatches < requiredMatches;
 }
 
+function getSystemPrefersDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function applyTheme(mode, persist = true) {
+    const isDark = mode === 'dark';
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+    if (themeToggleBtn) {
+        const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+        themeToggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+        themeToggleBtn.setAttribute('aria-label', label);
+        themeToggleBtn.setAttribute('title', label);
+    }
+    if (persist) {
+        localStorage.setItem('theme', mode);
+    }
+}
+function initializeTheme() {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme) {
+        applyTheme(storedTheme);
+    } else {
+        applyTheme(getSystemPrefersDark() ? 'dark' : 'light', false);
+    }
+    setupSystemThemeWatcher();
+}
+function setupSystemThemeWatcher() {
+    if (!window.matchMedia) {
+        return;
+    }
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const listener = (event) => {
+        if (!localStorage.getItem('theme')) {
+            applyTheme(event.matches ? 'dark' : 'light', false);
+        }
+    };
+    if (typeof mediaQuery.addEventListener === 'function') {
+        mediaQuery.addEventListener('change', listener);
+    } else if (typeof mediaQuery.addListener === 'function') {
+        mediaQuery.addListener(listener);
+    }
+}
+
+
 
 // FUNÇÕES GERAIS
 const setLanguage = (lang) => { document.documentElement.lang = lang; localStorage.setItem('language', lang); document.querySelectorAll('[data-i18n-key]').forEach(element => { const key = element.getAttribute('data-i18n-key'); if (!translations[lang] || !translations[lang][key]) return; const translation = translations[lang][key]; const icon = element.querySelector('i'); const span = element.querySelector('span'); if (icon && span) { span.textContent = translation; } else if (element.tagName.toLowerCase() !== 'label') { element.textContent = translation; } else if(element.tagName.toLowerCase() === 'option') { element.textContent = translation; } }); document.title = translations[lang]?.pageTitle || translations['en'].pageTitle; };
@@ -313,6 +361,12 @@ function setupEventListeners() {
     shareListsCard.addEventListener('click', openThemedListsModal);
     modalCloseBtn.addEventListener('click', closeModal);
     modalOverlay.addEventListener('click', closeModal);
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const nextTheme = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
+            applyTheme(nextTheme, true);
+        });
+    }
 }
 
 async function initializeApp() {
@@ -343,6 +397,7 @@ async function initializeApp() {
         if (savedSessionId) {
             startCoupleSession(savedSessionId);
         }
+
         updateTrendingNames();
         setupEventListeners();
         generateNewName();
@@ -355,5 +410,7 @@ async function initializeApp() {
         }
     }
 }
+
+initializeTheme();
 
 document.addEventListener('DOMContentLoaded', initializeApp);

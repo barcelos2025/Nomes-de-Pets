@@ -1,3 +1,22 @@
+﻿body.dark-mode {
+    --bg-color: #0f1729;
+    --primary-text: #e9edf6;
+    --heading-text: #fdf8ef;
+    --brand-orange: #f97316;
+    --card-bg: #1a2235;
+    --card-shadow: rgba(3, 7, 18, 0.55);
+    --border-color: rgba(148, 163, 184, 0.28);
+    --gradient: linear-gradient(90deg, #fb923c, #f97316, #38bdf8);
+    --gradient-rising: linear-gradient(135deg, #1c3a29, #27513b);
+    --gradient-top-pick: linear-gradient(135deg, #1d2e4f, #25406c);
+    --gradient-popular: linear-gradient(135deg, #4b1e1e, #7f1d1d);
+    --female-color: #fb923c;
+    --male-color: #a855f7;
+    --unisex-color: #38bdf8;
+    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+    color-scheme: dark;
+}
+
 :root {
     --bg-color: #fffcf9;
     --primary-text: #5d4a3a;
@@ -16,6 +35,8 @@
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { 
+    transition: background-color 0.3s ease, color 0.3s ease;
+    transition-property: background-color, color;
     font-family: 'Poppins', sans-serif; 
     background-color: var(--bg-color); 
     color: var(--primary-text); 
@@ -70,6 +91,51 @@ body.quiz-active {
     cursor: pointer;
     font-size: 0.8rem;
     white-space: nowrap;
+}
+
+.theme-toggle {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    color: var(--primary-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1200;
+}
+.theme-toggle:focus {
+    outline: 2px solid var(--brand-orange);
+    outline-offset: 3px;
+}
+.theme-toggle .icon {
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+.theme-toggle .sun-icon {
+    display: none;
+}
+body.dark-mode .theme-toggle {
+    background-color: rgba(15, 23, 42, 0.9);
+    color: #fdf8ef;
+    border-color: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 8px 24px rgba(3, 7, 18, 0.65);
+}
+body.dark-mode .theme-toggle .sun-icon {
+    display: flex;
+}
+body.dark-mode .theme-toggle .moon-icon {
+    display: none;
 }
 
 .header { padding: 60px 20px 80px; }
@@ -138,7 +204,7 @@ input:checked + .slider:before { transform: translateX(22px); }
 .action-btn i { font-size: 1.1rem; margin-right: 8px; }
 .save-favorite i { color: var(--brand-orange); }
 
-/* CORREÇÃO APLICADA AQUI */
+/* CORREÃ‡ÃƒO APLICADA AQUI */
 .grid-3 { 
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
@@ -238,16 +304,22 @@ input:checked + .slider:before { transform: translateX(22px); }
 @keyframes toastFadeIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
 @keyframes toastFadeOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100%); } }
 
-@media (max-width: 768px) { 
-    .header h1 { font-size: 2.8rem; } 
-    .cta-buttons { flex-direction: column; } 
+body.dark-mode .ad-space { border-color: rgba(148, 163, 184, 0.35); color: rgba(226, 232, 240, 0.72); }
+body.dark-mode .btn-small { background-color: rgba(15, 23, 42, 0.55); color: var(--primary-text); border-color: rgba(148, 163, 184, 0.35); }
+body.dark-mode .session-code { background-color: rgba(148, 163, 184, 0.12); color: var(--heading-text); }
+body.dark-mode .theme-list-item { background-color: rgba(15, 23, 42, 0.55); }
+@media (max-width: 768px) {
+    .header h1 { font-size: 2.8rem; }
+    .cta-buttons { flex-direction: column; }
     /* A linha abaixo que causava o empilhamento foi removida */
     /* .grid-3 { grid-template-columns: 1fr; } */
-    .filters { flex-direction: column; align-items: stretch; } 
-    .result-name { font-size: 3.5rem; } 
-    .trending-card .name {font-size: 1.8rem; } 
-    .metric-text span:first-child {font-size: 2.5rem;} 
-    .metric-text span:last-child {font-size: 1.8rem;} 
+    .filters { flex-direction: column; align-items: stretch; }
+    .result-name { font-size: 3.5rem; }
+    .trending-card .name {font-size: 1.8rem; }
+    .metric-text span:first-child {font-size: 2.5rem;}
+    .metric-text span:last-child {font-size: 1.8rem;}
     .themed-name-list { columns: 1; }
     #toast-container { right: 10px; left: 10px; bottom: 10px; align-items: stretch; }
+    .theme-toggle { top: 14px; right: 14px; width: 44px; height: 44px; }
 }
+
