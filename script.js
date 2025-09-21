@@ -26,7 +26,10 @@ let isInCoupleMode = false;
 let coupleSessionId = null;
 let userId = null;
 let database;
-let coupleModeListener = null;
+let coupleListeners = { names: null, generated: null, participants: null };
+let partnerGeneratedNameSet = new Set();
+let couplePartnerIds = [];
+let coupleModeStats = { totalGenerated: 0, partnerMatches: 0 };
 
 // Seletores do DOM
 const resultContainer = document.getElementById('result-display');
@@ -89,9 +92,121 @@ async function cleanupOldFirebaseSessions() { try { const MAX_AGE_DAYS = 30; con
 function initCoupleMode() { cleanupOldFirebaseSessions(); const currentLang = localStorage.getItem('language') || 'en'; modalContent.innerHTML = `<h3>${translations[currentLang].coupleModeIntroTitle}</h3><p>${translations[currentLang].coupleModeIntroDesc}</p><p class="disclaimer-text">${translations[currentLang].coupleModeDisclaimer}</p><div class="choice-buttons"><button id="create-session-btn" class="btn btn-primary">${translations[currentLang].createSessionButton}</button><button id="join-session-btn" class="btn btn-small">${translations[currentLang].joinSessionButton}</button></div>`; openModal(); document.getElementById('create-session-btn').addEventListener('click', displayCreateSession); document.getElementById('join-session-btn').addEventListener('click', displayJoinSession); }
 function displayCreateSession() { const currentLang = localStorage.getItem('language') || 'en'; const newSessionId = Math.random().toString(36).substring(2, 8).toUpperCase(); modalContent.innerHTML = `<h3>${translations[currentLang].createSessionTitle}</h3><p>${translations[currentLang].createSessionDesc}</p><div class="session-code">${newSessionId}</div><button id="copy-code-btn" class="btn btn-primary"><i class="fa-solid fa-copy"></i> <span>${translations[currentLang].copyCodeButton}</span></button>`; document.getElementById('copy-code-btn').addEventListener('click', () => { navigator.clipboard.writeText(newSessionId).then(() => { showToast('listCopiedToast'); startCoupleSession(newSessionId); setTimeout(closeModal, 500); }); }); }
 function displayJoinSession() { const currentLang = localStorage.getItem('language') || 'en'; modalContent.innerHTML = `<h3>${translations[currentLang].joinSessionTitle}</h3><input type="text" id="session-input" class="session-input" maxlength="6" placeholder="${translations[currentLang].joinSessionInputPlaceholder}"><button id="connect-btn" class="btn btn-primary">${translations[currentLang].connectButton}</button>`; document.getElementById('connect-btn').addEventListener('click', async () => { const inputId = document.getElementById('session-input').value.toUpperCase(); if (inputId.length === 6) { const sessionRef = database.ref('sessions/' + inputId); const snapshot = await sessionRef.once('value'); if (snapshot.exists()) { clearLocalFavorites(); startCoupleSession(inputId); closeModal(); } else { showToast('invalidCodeError'); } } else { showToast('invalidCodeError'); } }); }
-function startCoupleSession(sessionId) { if (coupleModeListener) { database.ref('sessions/' + coupleSessionId + '/names').off('value', coupleModeListener); } coupleSessionId = sessionId; isInCoupleMode = true; localStorage.setItem('coupleSessionId', coupleSessionId); const currentLang = localStorage.getItem('language') || 'en'; activeCoupleModeBanner.innerHTML = `<div class="banner-main-line"><span>${translations[currentLang].coupleModeActive}${coupleSessionId}</span><button id="end-session-btn">${translations[currentLang].endSession}</button></div><div class="banner-tip-line"><i class="fa-solid fa-circle-info"></i> ${translations[currentLang].coupleModeTip}</div>`; activeCoupleModeBanner.style.display = 'flex'; document.getElementById('end-session-btn').addEventListener('click', endCoupleSession); matchesSection.style.display = 'block'; const sessionRef = database.ref('sessions/' + coupleSessionId); sessionRef.child('lastActivity').set(firebase.database.ServerValue.TIMESTAMP); const namesRef = sessionRef.child('names'); coupleModeListener = namesRef.on('value', (snapshot) => { const data = snapshot.val(); renderMatches(data); }); }
-function endCoupleSession() { if (coupleModeListener) { database.ref('sessions/' + coupleSessionId + '/names').off('value', coupleModeListener); } isInCoupleMode = false; coupleSessionId = null; coupleModeListener = null; localStorage.removeItem('coupleSessionId'); activeCoupleModeBanner.style.display = 'none'; matchesSection.style.display = 'none'; matchesList.innerHTML = ''; }
+function startCoupleSession(sessionId) {
+    const previousSessionId = coupleSessionId;
+    if (previousSessionId) {
+        detachCoupleListeners(previousSessionId);
+    }
+    coupleSessionId = sessionId;
+    isInCoupleMode = true;
+    resetCoupleModeContext();
+    localStorage.setItem('coupleSessionId', coupleSessionId);
+    const currentLang = localStorage.getItem('language') || 'en';
+    activeCoupleModeBanner.innerHTML = `<div class="banner-main-line"><span>${translations[currentLang].coupleModeActive}${coupleSessionId}</span><button id="end-session-btn">${translations[currentLang].endSession}</button></div><div class="banner-tip-line"><i class="fa-solid fa-circle-info"></i> ${translations[currentLang].coupleModeTip}</div>`;
+    activeCoupleModeBanner.style.display = 'flex';
+    document.getElementById('end-session-btn').addEventListener('click', endCoupleSession);
+    matchesSection.style.display = 'block';
+    const sessionRef = database.ref('sessions/' + coupleSessionId);
+    sessionRef.child('lastActivity').set(firebase.database.ServerValue.TIMESTAMP);
+    registerCoupleParticipant(sessionRef);
+    const namesRef = sessionRef.child('names');
+    coupleListeners.names = namesRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        renderMatches(data);
+    });
+    const generatedRef = sessionRef.child('generated');
+    coupleListeners.generated = generatedRef.on('value', (snapshot) => {
+        const generatedData = snapshot.val() || {};
+        updatePartnerGeneratedPool(generatedData);
+    });
+    const participantsRef = sessionRef.child('participants');
+    coupleListeners.participants = participantsRef.on('value', (snapshot) => {
+        const participants = snapshot.val() || {};
+        couplePartnerIds = Object.keys(participants).filter(id => id !== userId);
+    });
+}
+function endCoupleSession() {
+    const sessionId = coupleSessionId;
+    if (database && sessionId) {
+        detachCoupleListeners(sessionId);
+        database.ref('sessions/' + sessionId + '/participants/' + userId).remove();
+    }
+    isInCoupleMode = false;
+    coupleSessionId = null;
+    localStorage.removeItem('coupleSessionId');
+    activeCoupleModeBanner.style.display = 'none';
+    matchesSection.style.display = 'none';
+    matchesList.innerHTML = '';
+    resetCoupleModeContext();
+}
 function renderMatches(data) { if (!data) { matchesList.innerHTML = ''; return; } let matchesHTML = ''; Object.keys(data).forEach(nameStr => { const likers = Object.keys(data[nameStr]); if (likers.length > 1) { const nameObject = names.find(n => n.name === nameStr); if(nameObject) { let nameClass = ''; if (nameObject.gender === 'femea') nameClass = 'name-girl'; else if (nameObject.gender === 'macho') nameClass = 'name-boy'; else if (nameObject.gender === 'unissex') nameClass = 'name-unisex'; matchesHTML += `<div class="favorite-card"><div class="favorite-card-name ${nameClass}">${nameObject.name}</div></div>`; } } }); matchesList.innerHTML = matchesHTML; }
+function resetCoupleModeContext() {
+    partnerGeneratedNameSet = new Set();
+    couplePartnerIds = [];
+    coupleModeStats = { totalGenerated: 0, partnerMatches: 0 };
+}
+function detachCoupleListeners(sessionId) {
+    if (!database || !sessionId) {
+        return;
+    }
+    const sessionRef = database.ref('sessions/' + sessionId);
+    if (coupleListeners.names) {
+        sessionRef.child('names').off('value', coupleListeners.names);
+    }
+    if (coupleListeners.generated) {
+        sessionRef.child('generated').off('value', coupleListeners.generated);
+    }
+    if (coupleListeners.participants) {
+        sessionRef.child('participants').off('value', coupleListeners.participants);
+    }
+    coupleListeners = { names: null, generated: null, participants: null };
+}
+function registerCoupleParticipant(sessionRef) {
+    if (!sessionRef || !userId) {
+        return;
+    }
+    const participantRef = sessionRef.child('participants/' + userId);
+    participantRef.update({
+        joinedAt: firebase.database.ServerValue.TIMESTAMP,
+        lastActive: firebase.database.ServerValue.TIMESTAMP
+    });
+    participantRef.onDisconnect().remove();
+}
+function updatePartnerGeneratedPool(generatedData) {
+    const updatedSet = new Set();
+    Object.keys(generatedData || {}).forEach(uid => {
+        if (uid === userId) {
+            return;
+        }
+        const userGenerated = generatedData[uid];
+        if (userGenerated && typeof userGenerated === 'object') {
+            Object.keys(userGenerated).forEach(nameKey => {
+                updatedSet.add(nameKey);
+            });
+        }
+    });
+    partnerGeneratedNameSet = updatedSet;
+}
+function recordCoupleGeneratedName(nameObject) {
+    if (!isInCoupleMode || !database || !coupleSessionId || !nameObject || !nameObject.name) {
+        return;
+    }
+    const sessionRef = database.ref('sessions/' + coupleSessionId);
+    const updates = {};
+    updates['generated/' + userId + '/' + nameObject.name] = firebase.database.ServerValue.TIMESTAMP;
+    updates['lastActivity'] = firebase.database.ServerValue.TIMESTAMP;
+    updates['participants/' + userId + '/lastActive'] = firebase.database.ServerValue.TIMESTAMP;
+    sessionRef.update(updates);
+}
+function shouldUsePartnerGeneratedName(partnerCandidateCount) {
+    if (!isInCoupleMode || partnerCandidateCount === 0 || couplePartnerIds.length === 0) {
+        return false;
+    }
+    const nextTotal = coupleModeStats.totalGenerated + 1;
+    const requiredMatches = Math.ceil(nextTotal * 0.4);
+    return coupleModeStats.partnerMatches < requiredMatches;
+}
+
 
 // FUNÇÕES GERAIS
 const setLanguage = (lang) => { document.documentElement.lang = lang; localStorage.setItem('language', lang); document.querySelectorAll('[data-i18n-key]').forEach(element => { const key = element.getAttribute('data-i18n-key'); if (!translations[lang] || !translations[lang][key]) return; const translation = translations[lang][key]; const icon = element.querySelector('i'); const span = element.querySelector('span'); if (icon && span) { span.textContent = translation; } else if (element.tagName.toLowerCase() !== 'label') { element.textContent = translation; } else if(element.tagName.toLowerCase() === 'option') { element.textContent = translation; } }); document.title = translations[lang]?.pageTitle || translations['en'].pageTitle; };
@@ -105,7 +220,54 @@ const saveFavorite = (nameObject) => { const isAlreadyFavorite = favorites.some(
 function showToast(messageKey) { const currentLang = localStorage.getItem('language') || 'en'; const message = translations[currentLang][messageKey]; const toast = document.createElement('div'); toast.className = 'toast-notification'; toast.textContent = message; toastContainer.appendChild(toast); setTimeout(() => { toast.remove(); }, 3000); }
 const shareSingleName = (nameObject) => { const currentLang = localStorage.getItem('language') || 'en'; let textTemplate = translations[currentLang].shareNameText; const textToCopy = textTemplate.replace('%name%', nameObject.name).replace('%meaning%', nameObject.meaning); navigator.clipboard.writeText(textToCopy).then(() => { showToast('listCopiedToast'); }).catch(err => console.error('Failed to copy name: ', err)); };
 function displaySelectedName(selectedName) { const currentLang = localStorage.getItem('language') || 'en'; let tagsHTML = ''; if (selectedName.tags) { selectedName.tags.forEach(tag => { tagsHTML += `<span class="tag">${tag}</span>`; }); } let nameClass = ''; if (currentGenderFilter === 'femea') { nameClass = 'name-girl'; } else if (currentGenderFilter === 'macho') { nameClass = 'name-boy'; } else { if (selectedName.gender === 'femea') nameClass = 'name-girl'; else if (selectedName.gender === 'macho') nameClass = 'name-boy'; else nameClass = 'name-unisex'; } resultContainer.innerHTML = `<div><h3 class="result-name ${nameClass}">${selectedName.name}</h3><div class="result-tags">${tagsHTML}</div><p class="result-meaning">"${selectedName.meaning}"</p><div class="name-actions"><button class="action-btn save-favorite"><i class="fa-regular fa-heart"></i><span data-i18n-key="saveFavorite">${translations[currentLang].saveFavorite}</span></button><button class="action-btn share-name-btn"><i class="fa-solid fa-share-alt"></i><span data-i18n-key="shareNameButton">${translations[currentLang].shareNameButton}</span></button></div></div>`; resultContainer.querySelector('.save-favorite').addEventListener('click', () => saveFavorite(selectedName)); resultContainer.querySelector('.share-name-btn').addEventListener('click', () => shareSingleName(selectedName)); }
-async function generateNewName() { if (names.length === 0) return; const filteredNames = names.filter(name => { const genderMatch = currentGenderFilter === 'todos' || name.gender === currentGenderFilter || (currentGenderFilter === 'macho' && name.gender === 'unissex') || (currentGenderFilter === 'femea' && name.gender === 'unissex'); const styleMatch = (currentStyleFilter === 'All Styles') || (name.tags && name.tags.includes(currentStyleFilter)); const brazilianMatch = (!brazilianOnlyFilter) || (brazilianOnlyFilter && name.tags && name.tags.includes('Brasileiro')); return genderMatch && styleMatch && brazilianMatch; }); const currentLang = localStorage.getItem('language') || 'en'; if (filteredNames.length === 0) { resultContainer.innerHTML = `<div><p>${translations[currentLang].noNamesFound}</p><p style="font-size:0.9rem; color:#888;">${translations[currentLang].tryDifferent}</p></div>`; return; } let availableNames = filteredNames.filter(name => !shownNamesHistory.includes(name.name)); if (availableNames.length === 0 && filteredNames.length > 0) { showToast('allNamesSeen'); const filteredNameStrings = filteredNames.map(n => n.name); shownNamesHistory = shownNamesHistory.filter(name => !filteredNameStrings.includes(name)); availableNames = filteredNames; } if (availableNames.length === 0) { resultContainer.innerHTML = `<div><p>${translations[currentLang].noNamesFound}</p><p style="font-size:0.9rem; color:#888;">${translations[currentLang].tryDifferent}</p></div>`; return; } const randomIndex = Math.floor(Math.random() * availableNames.length); const selectedName = availableNames[randomIndex]; if(selectedName) { shownNamesHistory.push(selectedName.name); displaySelectedName(selectedName); } }
+async function generateNewName() {
+    if (names.length === 0) return;
+    const filteredNames = names.filter(name => {
+        const genderMatch = currentGenderFilter === 'todos' || name.gender === currentGenderFilter || (currentGenderFilter === 'macho' && name.gender === 'unissex') || (currentGenderFilter === 'femea' && name.gender === 'unissex');
+        const styleMatch = (currentStyleFilter === 'All Styles') || (name.tags && name.tags.includes(currentStyleFilter));
+        const brazilianMatch = (!brazilianOnlyFilter) || (brazilianOnlyFilter && name.tags && name.tags.includes('Brasileiro'));
+        return genderMatch && styleMatch && brazilianMatch;
+    });
+    const currentLang = localStorage.getItem('language') || 'en';
+    if (filteredNames.length === 0) {
+        resultContainer.innerHTML = `<div><p>${translations[currentLang].noNamesFound}</p><p style="font-size:0.9rem; color:#888;">${translations[currentLang].tryDifferent}</p></div>`;
+        return;
+    }
+    let availableNames = filteredNames.filter(name => !shownNamesHistory.includes(name.name));
+    if (availableNames.length === 0 && filteredNames.length > 0) {
+        showToast('allNamesSeen');
+        const filteredNameStrings = filteredNames.map(n => n.name);
+        shownNamesHistory = shownNamesHistory.filter(name => !filteredNameStrings.includes(name));
+        availableNames = filteredNames;
+    }
+    if (availableNames.length === 0) {
+        resultContainer.innerHTML = `<div><p>${translations[currentLang].noNamesFound}</p><p style="font-size:0.9rem; color:#888;">${translations[currentLang].tryDifferent}</p></div>`;
+        return;
+    }
+    let selectedName = null;
+    if (isInCoupleMode && partnerGeneratedNameSet.size > 0) {
+        const partnerCandidates = availableNames.filter(name => partnerGeneratedNameSet.has(name.name));
+        if (shouldUsePartnerGeneratedName(partnerCandidates.length)) {
+            const partnerIndex = Math.floor(Math.random() * partnerCandidates.length);
+            selectedName = partnerCandidates[partnerIndex];
+        }
+    }
+    if (!selectedName) {
+        const randomIndex = Math.floor(Math.random() * availableNames.length);
+        selectedName = availableNames[randomIndex];
+    }
+    if (selectedName) {
+        shownNamesHistory.push(selectedName.name);
+        if (isInCoupleMode) {
+            coupleModeStats.totalGenerated++;
+            if (partnerGeneratedNameSet.has(selectedName.name)) {
+                coupleModeStats.partnerMatches++;
+            }
+            recordCoupleGeneratedName(selectedName);
+        }
+        displaySelectedName(selectedName);
+    }
+}
 const themedLists = [ { titleKey: 'theme_mythological', filter: (n) => n.tags.includes('Místico')}, { titleKey: 'theme_nature', filter: (n) => n.tags.includes('Natureza') }, { titleKey: 'theme_strong', filter: (n) => n.tags.includes('Comida') }, { titleKey: 'theme_celestial', filter: (n) => n.tags.includes('Geek') } ];
 function openThemedListsModal() { openModal(); displayThemeSelection(); }
 function displayThemeSelection() { const currentLang = localStorage.getItem('language') || 'en'; let themesHTML = `<h3>${translations[currentLang].themedListsTitle}</h3>`; themedLists.forEach(theme => { themesHTML += `<button class="theme-list-item" data-titlekey="${theme.titleKey}">${translations[currentLang][theme.titleKey]}</button>`; }); modalContent.innerHTML = themesHTML; document.querySelectorAll('.theme-list-item').forEach(btn => { btn.addEventListener('click', (e) => { const titleKey = e.target.dataset.titlekey; const theme = themedLists.find(t => t.titleKey === titleKey); displayNamesForTheme(theme); }); }); }
