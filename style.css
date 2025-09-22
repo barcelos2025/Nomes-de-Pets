@@ -139,6 +139,29 @@ body.dark-mode .theme-toggle .moon-icon {
 }
 
 .header { padding: 60px 20px 80px; }
+
+.logo-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 36px;
+}
+
+.site-logo {
+    width: clamp(220px, 60vw, 420px);
+    height: auto;
+    filter: drop-shadow(0 24px 45px rgba(249, 115, 22, 0.35));
+    transition: transform 0.35s ease, filter 0.35s ease;
+}
+
+.site-logo:hover {
+    transform: translateY(-6px) scale(1.02);
+    filter: drop-shadow(0 30px 60px rgba(249, 115, 22, 0.4));
+}
+
+body.dark-mode .site-logo {
+    filter: drop-shadow(0 24px 45px rgba(15, 23, 42, 0.65));
+}
+
 .header h1 { font-size: 3.8rem; font-weight: 700; color: var(--heading-text); background: var(--gradient); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
 .header h2 { font-size: 1.2rem; font-weight: 400; max-width: 600px; margin: 0 auto 40px; }
 .cta-buttons { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; margin-bottom: 50px; }
@@ -322,4 +345,5 @@ body.dark-mode .theme-list-item { background-color: rgba(15, 23, 42, 0.55); }
     #toast-container { right: 10px; left: 10px; bottom: 10px; align-items: stretch; }
     .theme-toggle { top: 14px; right: 14px; width: 44px; height: 44px; }
 }
+
 
